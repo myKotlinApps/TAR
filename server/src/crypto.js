@@ -11,21 +11,14 @@ function xorCrypt(data, key) {
 }
 
 function rawPointToSpki(raw) {
-    if (!Buffer.isBuffer(raw) || raw.length !== 65 || raw[0] !== 0x04) {
-        throw new Error("invalid raw EC point");
-    }
-    const x = raw.subarray(1, 33);
-    const y = raw.subarray(33, 65);
-    const jwk = {
-        kty: "EC",
-        crv: "P-256",
-        x: Buffer.from(x).toString("base64url"),
-        y: Buffer.from(y).toString("base64url"),
-    };
+    if (!Buffer.isBuffer(raw) || raw.length !== 65 || raw[0] !== 0x04) throw new Error("invalid raw EC point");
+    const x = raw.subarray(1, 33); const y = raw.subarray(33, 65);
+    const jwk = { kty: "EC", crv: "P-256", x: Buffer.from(x).toString("base64url"), y: Buffer.from(y).toString("base64url") };
     const key = crypto.createPublicKey({ key: jwk, format: "jwk" });
     return key.export({ format: "der", type: "spki" });
 }
 
+// FIXED: keyexChunk is a named function so caller can removeListener on timeout
 function performKeyExchange(sock, callback) {
     const ecdh = crypto.createECDH("prime256v1");
     const serverRawPub = ecdh.generateKeys();
@@ -35,7 +28,7 @@ function performKeyExchange(sock, callback) {
     sock.write(Buffer.concat([header, serverPubKey]));
 
     let state = { ecdh, buf: Buffer.alloc(0), expecting: true, len: 0 };
-    sock.on("data", function keyexChunk(raw) {
+    function keyexChunk(raw) {
         state.buf = Buffer.concat([state.buf, raw]);
         if (state.expecting) {
             if (state.buf.length < 4) return;
@@ -51,24 +44,21 @@ function performKeyExchange(sock, callback) {
             const aesKey = crypto.createHash("sha256").update(sharedSecret).digest();
             callback(aesKey, leftover);
         }
-    });
+    }
+    sock.on("data", keyexChunk);
 }
 
 function aesEncrypt(data, key) {
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
     const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
-    const tag = cipher.getAuthTag();
-    return Buffer.concat([iv, tag, encrypted]);
+    return Buffer.concat([iv, cipher.getAuthTag(), encrypted]);
 }
 
 function aesDecrypt(data, key) {
-    const iv = data.subarray(0, 12);
-    const tag = data.subarray(12, 28);
-    const ciphertext = data.subarray(28);
-    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
-    decipher.setAuthTag(tag);
-    return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, data.subarray(0, 12));
+    decipher.setAuthTag(data.subarray(12, 28));
+    return Buffer.concat([decipher.update(data.subarray(28)), decipher.final()]);
 }
 
 function sendFramed(sock, payload, aesKey) {
