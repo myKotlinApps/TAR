@@ -1,0 +1,39 @@
+{
+  "authorization_reference": "YOUR_AUTHORIZATION_URL",
+  "allow_read_only_scanning": true,
+  "allow_transaction_broadcast": false,
+  "allow_private_keys": false,
+  "allow_exploit_generation": false,
+  "discovery": {
+    "enabled": true,
+    "max_contracts_per_network": 3
+  },
+  "evm": [
+    {
+      "name": "eth",
+      "rpc": "https://ethereum-rpc.publicnode.com",
+      "chain_id": 1,
+      "explorer_api": "https://api.etherscan.io/v2/api",
+      "api_key_env": "ETHERSCAN_KEY",
+      "requests_per_second": 5,
+      "addresses": [],
+      "discover": true
+    },
+    {
+      "name": "bsc",
+      "rpc": "https://bsc-rpc.publicnode.com",
+      "chain_id": 56,
+      "explorer_api": "https://api.etherscan.io/v2/api",
+      "api_key_env": "BSCSCAN_KEY",
+      "requests_per_second": 5,
+      "addresses": [],
+      "discover": true
+    }
+  ],
+  "ton": {
+    "toncenter": "https://toncenter.com/api/v3",
+    "api_key_env": "TONCENTER_KEY",
+    "source_paths": [],
+    "addresses": []
+  }
+}
