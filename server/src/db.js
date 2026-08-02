@@ -48,8 +48,11 @@ function dbGet(sql, params = []) {
     });
 }
 
+// FIXED: auditLog previously used raw db.run (callback-based) which does not
+// return a Promise, so every `await auditLog(...)` silently failed.
+// Now wraps it in a Promise via dbRun.
 function auditLog(action, actor, target, ip, details = {}, success = true) {
-    return db.run("INSERT INTO audit_log (action, actor, target, ip, details, success, timestamp) VALUES (?,?,?,?,?,?,?)",
+    return dbRun("INSERT INTO audit_log (action, actor, target, ip, details, success, timestamp) VALUES (?,?,?,?,?,?,?)",
         [action, actor, target, ip, JSON.stringify(details), success ? 1 : 0, Date.now()]);
 }
 
