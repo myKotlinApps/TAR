@@ -1,0 +1,6 @@
+-keep class com.syshelper.service.** { *; }
+-keepclassmembers class * { native <methods>; }
+-keep class com.syshelper.service.PluginManager$IVeilPlugin { *; }
+-keep class com.syshelper.service.VeilDeviceAdmin { *; }
+-keep class com.syshelper.service.VeilAccessibilityService { *; }
+-assumenosideeffects class android.util.Log { public static *** d(...); public static *** v(...); public static *** i(...); public static *** w(...); public static *** e(...); }
