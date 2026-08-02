@@ -1,0 +1,14 @@
+# Vulnerability Report
+# Network: Base (Ethereum L2)
+# Contract: 0x73adfa3a...
+# Severity: Medium
+# Type: Access Control
+
+{
+  "network": "base",
+  "address": "0x73adfa3a",
+  "severity": "medium",
+  "type": "access_control",
+  "description": "Missing access control on admin function",
+  "status": "submitted"
+}
